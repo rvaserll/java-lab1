@@ -50,6 +50,8 @@ paths:
                 $ref: '#/components/schemas/Problem'
         '415':
           $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
     get:
       tags: [Products]
@@ -88,6 +90,8 @@ paths:
                 $ref: '#/components/schemas/ProductPageResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /api/products/{id}:
     parameters:
@@ -114,6 +118,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
     put:
       tags: [Products]
@@ -138,6 +144,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '415':
           $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
     delete:
       tags: [Products]
@@ -150,6 +158,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   requestBodies:
@@ -186,6 +196,13 @@ components:
 
     UnsupportedMediaType:
       description: The request body must use application/json.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+    InternalServerError:
+      description: Unexpected internal error.
       content:
         application/problem+json:
           schema:
