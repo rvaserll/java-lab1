@@ -1,6 +1,8 @@
 package com.example.javalab1.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -22,6 +24,9 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler
         extends ResponseEntityExceptionHandler {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -88,9 +93,9 @@ public class GlobalExceptionHandler
                 .body(problem);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler(InvalidPaginationException.class)
     public ResponseEntity<ProblemDetail> handleBadRequest(
-            IllegalArgumentException exception,
+            InvalidPaginationException exception,
             HttpServletRequest request
     ) {
         ProblemDetail problem = createProblem(
@@ -102,6 +107,30 @@ public class GlobalExceptionHandler
         );
 
         return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ProblemDetail> handleUnexpected(
+            Exception exception,
+            HttpServletRequest request
+    ) {
+        log.error(
+                "Unexpected error while processing {} {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception
+        );
+
+        ProblemDetail problem = createProblem(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "internal-error",
+                "Internal server error",
+                "An unexpected error occurred.",
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(problem);
     }
 
     private ProblemDetail createProblem(

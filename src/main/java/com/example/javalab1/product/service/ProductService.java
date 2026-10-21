@@ -1,5 +1,6 @@
 package com.example.javalab1.product.service;
 
+import com.example.javalab1.exception.InvalidPaginationException;
 import com.example.javalab1.exception.ResourceNotFoundException;
 import com.example.javalab1.product.domain.Category;
 import com.example.javalab1.product.domain.Product;
@@ -63,13 +64,13 @@ public class ProductService {
 
     public ProductPageResponse getAll(int page, int size) {
         if (page < 0) {
-            throw new IllegalArgumentException(
+            throw new InvalidPaginationException(
                     "Page must be greater than or equal to 0."
             );
         }
 
         if (size < 1 || size > 100) {
-            throw new IllegalArgumentException(
+            throw new InvalidPaginationException(
                     "Size must be between 1 and 100."
             );
         }
