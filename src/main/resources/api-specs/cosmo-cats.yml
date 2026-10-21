@@ -1,0 +1,339 @@
+openapi: 3.0.3
+
+info:
+  title: Cosmo Cats Intergalactic Marketplace
+  version: 1.0.0
+  description: |
+    Product API for an intergalactic marketplace.
+    Products are stored in memory and disappear after application restart.
+
+    Available mock categories:
+    - 11111111-1111-1111-1111-111111111111 — Space toys
+    - 22222222-2222-2222-2222-222222222222 — Cosmic food
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: Products
+    description: Product creation, retrieval, update and deletion.
+
+paths:
+  /api/products:
+    post:
+      tags: [Products]
+      operationId: createProduct
+      summary: Create a product
+      description: Creates a product with a server-generated identifier.
+      requestBody:
+        $ref: '#/components/requestBodies/ProductBody'
+      responses:
+        '201':
+          description: Product created.
+          headers:
+            Location:
+              description: URL of the created product.
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: The specified category does not exist.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+
+    get:
+      tags: [Products]
+      operationId: listProducts
+      summary: Get a page of products
+      description: |
+        Returns products sorted by identifier.
+        Page numbering starts at 0.
+        A page beyond the available products has empty content.
+      parameters:
+        - name: page
+          in: query
+          description: Zero-based page number.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Maximum number of products per page.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Page of products.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/products/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Product identifier.
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Products]
+      operationId: getProduct
+      summary: Get a product by identifier
+      responses:
+        '200':
+          description: Product found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Products]
+      operationId: updateProduct
+      summary: Replace an existing product
+      description: |
+        Replaces the editable fields while preserving the identifier.
+        An omitted description becomes null.
+        Does not create a product if the identifier does not exist.
+      requestBody:
+        $ref: '#/components/requestBodies/ProductBody'
+      responses:
+        '200':
+          description: Product updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+
+    delete:
+      tags: [Products]
+      operationId: deleteProduct
+      summary: Delete a product
+      responses:
+        '204':
+          description: Product deleted. The response has no body.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  requestBodies:
+    ProductBody:
+      description: Editable product fields.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProductRequest'
+          example:
+            name: Galaxy yarn ball
+            description: An antigravity yarn ball for cosmic cats
+            price: 19.99
+            categoryId: 11111111-1111-1111-1111-111111111111
+            stock: 10
+
+  responses:
+    BadRequest:
+      description: |
+        Invalid fields, malformed JSON, an invalid identifier
+        or invalid pagination parameters.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+    NotFound:
+      description: Product or category not found.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+    UnsupportedMediaType:
+      description: The request body must use application/json.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+  schemas:
+    ProductRequest:
+      type: object
+      required:
+        - name
+        - price
+        - categoryId
+        - stock
+      properties:
+        name:
+          type: string
+          description: Product name. Must contain a non-whitespace character.
+          minLength: 3
+          maxLength: 120
+          pattern: '\S'
+          example: Galaxy yarn ball
+        description:
+          type: string
+          description: Optional product description.
+          nullable: true
+          maxLength: 2000
+          example: An antigravity yarn ball for cosmic cats
+        price:
+          type: number
+          description: |
+            Positive decimal price with up to 10 integer digits
+            and up to 2 fractional digits.
+          minimum: 0
+          exclusiveMinimum: true
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          example: 19.99
+        categoryId:
+          type: string
+          format: uuid
+          description: Identifier of an existing category.
+          example: 11111111-1111-1111-1111-111111111111
+        stock:
+          type: integer
+          format: int32
+          description: Available quantity. Zero means out of stock.
+          minimum: 0
+          maximum: 2147483647
+          example: 10
+
+    ProductResponse:
+      allOf:
+        - $ref: '#/components/schemas/ProductRequest'
+        - type: object
+          required:
+            - id
+            - categoryName
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Server-generated product identifier.
+              example: 0c0baabc-f821-4bff-80e9-0ab52f7b9989
+            categoryName:
+              type: string
+              description: Name of the associated category.
+              example: Space toys
+
+    ProductPageResponse:
+      type: object
+      required:
+        - content
+        - page
+        - size
+        - totalElements
+      properties:
+        content:
+          type: array
+          description: Products on the requested page.
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+        page:
+          type: integer
+          format: int32
+          description: Requested zero-based page number.
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          description: Requested page size.
+          minimum: 1
+          maximum: 100
+        totalElements:
+          type: integer
+          format: int64
+          description: Total number of products in the collected list.
+          minimum: 0
+
+    Problem:
+      type: object
+      description: RFC 9457 problem details with optional field errors.
+      required:
+        - type
+        - title
+        - status
+        - detail
+        - instance
+      properties:
+        type:
+          type: string
+          format: uri
+          description: URI identifying the problem type.
+          example: https://cosmo-cats.market/errors/validation
+        title:
+          type: string
+          description: Short description of the problem type.
+          example: Validation failed
+        status:
+          type: integer
+          description: HTTP response status.
+          minimum: 100
+          maximum: 599
+          example: 400
+        detail:
+          type: string
+          description: Explanation of this particular error.
+          example: Field 'price' must be greater than 0.
+        instance:
+          type: string
+          description: URI reference identifying the request.
+          example: /api/products
+        errors:
+          type: array
+          description: Field errors included for Bean Validation failures.
+          items:
+            $ref: '#/components/schemas/FieldError'
+
+    FieldError:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+          description: Invalid field name.
+          example: price
+        message:
+          type: string
+          description: Explanation of the validation failure.
+          example: must be greater than 0
