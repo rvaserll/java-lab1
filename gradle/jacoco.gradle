@@ -1,0 +1,40 @@
+// Adapted from the instructor's PR #1 for this single test suite.
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = '0.8.16'
+    reportsDirectory = layout.buildDirectory.dir('reports/coverage')
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        html.required = true
+        xml.required = true
+        csv.required = true
+        html.outputLocation = layout.buildDirectory.dir('reports/coverage')
+        xml.outputLocation = layout.buildDirectory.file('reports/coverage/coverage.xml')
+        csv.outputLocation = layout.buildDirectory.file('reports/coverage/coverage.csv')
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            element = 'CLASS'
+            includes = ['com.example.javalab1.*.service.*']
+            limit {
+                counter = 'LINE'
+                minimum = 0.80
+            }
+            limit {
+                counter = 'BRANCH'
+                minimum = 0.80
+            }
+        }
+    }
+}
+
+test.finalizedBy jacocoTestReport
+check.dependsOn jacocoTestCoverageVerification

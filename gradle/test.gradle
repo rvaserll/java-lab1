@@ -1,0 +1,8 @@
+// Based on Ekatereana/intergalactic-market-java-course, PR #1.
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    testLogging {
+        events 'failed', 'skipped'
+        exceptionFormat = 'full'
+    }
+}
