@@ -4,7 +4,7 @@ name: Build and Test Coverage
 on:
   pull_request:
   push:
-    branches: [lab2-testing]
+    branches: [lab2-testing, lab3-databases]
   workflow_dispatch:
 
 permissions:

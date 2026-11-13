@@ -13,6 +13,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@org.springframework.context.annotation.Import(com.example.javalab1.support.PostgresTestConfiguration.class)
+@org.springframework.transaction.annotation.Transactional
 @AutoConfigureMockMvc
 class ProductApiIntegrationTest {
     @Autowired private MockMvc mvc;
