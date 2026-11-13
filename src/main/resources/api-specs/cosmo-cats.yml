@@ -5,9 +5,9 @@ info:
   version: 1.0.0
   description: |
     Product API for an intergalactic marketplace.
-    Products are stored in memory and disappear after application restart.
+    Products are persisted in PostgreSQL and remain available after application restart.
 
-    Available mock categories:
+    Initially available categories:
     - 11111111-1111-1111-1111-111111111111 — Space toys
     - 22222222-2222-2222-2222-222222222222 — Cosmic food
 
@@ -50,6 +50,12 @@ paths:
                 $ref: '#/components/schemas/Problem'
         '415':
           $ref: '#/components/responses/UnsupportedMediaType'
+        '409':
+          description: The operation conflicts with existing data (duplicate name or referenced product).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -144,6 +150,12 @@ paths:
           $ref: '#/components/responses/NotFound'
         '415':
           $ref: '#/components/responses/UnsupportedMediaType'
+        '409':
+          description: The operation conflicts with existing data (duplicate name or referenced product).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -158,6 +170,12 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: The operation conflicts with existing data (duplicate name or referenced product).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '500':
           $ref: '#/components/responses/InternalServerError'
 

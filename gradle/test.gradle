@@ -1,6 +1,10 @@
 // Based on Ekatereana/intergalactic-market-java-course, PR #1.
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    // Optional override for older local Docker engines; CI uses its normal API version.
+    if (System.getenv('DOCKER_API_VERSION')) {
+        systemProperty 'api.version', System.getenv('DOCKER_API_VERSION')
+    }
     testLogging {
         events 'failed', 'skipped'
         exceptionFormat = 'full'

@@ -4,8 +4,6 @@ import com.example.javalab1.exception.InvalidPaginationException;
 import com.example.javalab1.exception.ResourceNotFoundException;
 import com.example.javalab1.product.dto.ProductRequest;
 import com.example.javalab1.product.dto.ProductResponse;
-import com.example.javalab1.product.mapper.ProductMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -15,15 +13,11 @@ import java.util.List;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 
-class ProductServiceTest {
+class ProductServiceTest extends com.example.javalab1.support.DatabaseTestSupport {
     private static final UUID TOYS = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID FOOD = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    @org.springframework.beans.factory.annotation.Autowired
     private ProductService service;
-
-    @BeforeEach
-    void setUp() {
-        service = new ProductService(new ProductMapper());
-    }
 
     private ProductRequest request(String name, UUID category) {
         return new ProductRequest(name, "For space cats", new BigDecimal("12.50"), category, 3);
@@ -37,7 +31,7 @@ class ProductServiceTest {
         assertThat(created).usingRecursiveComparison().ignoringFields("id")
                 .isEqualTo(new ProductResponse(null, input.name(), input.description(), input.price(), TOYS, "Space toys", 3));
         assertThat(service.getById(created.id())).isEqualTo(created);
-        assertThat(service.create(input).id()).isNotEqualTo(created.id());
+        assertThat(service.create(request("Another toy", TOYS)).id()).isNotEqualTo(created.id());
     }
 
     @Test

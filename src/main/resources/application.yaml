@@ -1,3 +1,13 @@
 spring:
   application:
     name: java-lab1
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/cosmo_cats}
+    username: ${DB_USERNAME:cosmo_cats}
+    password: ${DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml

@@ -109,6 +109,13 @@ public class GlobalExceptionHandler
         return ResponseEntity.badRequest().body(problem);
     }
 
+    @ExceptionHandler({ResourceConflictException.class, org.springframework.dao.DataIntegrityViolationException.class})
+    public ResponseEntity<ProblemDetail> handleConflict(Exception exception, HttpServletRequest request) {
+        ProblemDetail problem = createProblem(HttpStatus.CONFLICT, "conflict", "Resource conflict",
+                "The operation conflicts with existing data.", request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleUnexpected(
             Exception exception,

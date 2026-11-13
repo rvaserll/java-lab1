@@ -21,6 +21,13 @@ jacocoTestReport {
 jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
     violationRules {
+        // Lab 3 requires coverage of the application, not only service classes.
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.80
+            }
+        }
         rule {
             element = 'CLASS'
             includes = ['com.example.javalab1.*.service.*']

@@ -3,7 +3,6 @@ package com.example.javalab1.product.controller;
 import com.example.javalab1.exception.GlobalExceptionHandler;
 import com.example.javalab1.product.dto.ProductRequest;
 import com.example.javalab1.product.dto.ProductResponse;
-import com.example.javalab1.product.mapper.ProductMapper;
 import com.example.javalab1.product.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,21 +27,25 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// Exercises HTTP conversion, Bean Validation and exception handling with the real service.
+// Exercises validation and HTTP responses against the actual application and PostgreSQL.
+@org.springframework.boot.test.context.SpringBootTest
+@org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+@org.springframework.context.annotation.Import(com.example.javalab1.support.PostgresTestConfiguration.class)
+@org.springframework.transaction.annotation.Transactional
 class ProductControllerTest {
     private static final String API = "/api/products";
     private static final UUID TOYS = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private final JsonMapper json = JsonMapper.builder().build();
+    @org.springframework.beans.factory.annotation.Autowired
     private ProductService service;
     private ProductResponse original;
+    @org.springframework.beans.factory.annotation.Autowired
     private MockMvc mvc;
 
     @BeforeEach
     void setUp() {
-        service = new ProductService(new ProductMapper());
         original = service.create(new ProductRequest("Original toy", "Original description",
                 new BigDecimal("10.00"), TOYS, 5));
-        mvc = mvcFor(service);
     }
 
     private MockMvc mvcFor(ProductService productService) {
@@ -205,6 +208,27 @@ class ProductControllerTest {
         mvc.perform(delete(API + "/" + original.id())).andExpect(status().isNoContent())
                 .andExpect(content().string(""));
         mvc.perform(get(API + "/" + original.id())).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void duplicateNameInSameCategoryReturns409WithoutExposingSql() throws Exception {
+        var body = validBody();
+        body.put("name", original.name());
+        mvc.perform(post(API).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(body)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.type").value("https://cosmo-cats.market/errors/conflict"))
+                .andExpect(content().string(not(containsString("uk_products_category_name"))));
+    }
+
+    @Test
+    void referencedProductDeletionReturns409() throws Exception {
+        var conflictService = mock(ProductService.class);
+        doThrow(new com.example.javalab1.exception.ResourceConflictException("Product is referenced by an order."))
+                .when(conflictService).delete(original.id());
+        mvcFor(conflictService).perform(delete(API + "/" + original.id()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.title").value("Resource conflict"));
     }
 
     @Test
