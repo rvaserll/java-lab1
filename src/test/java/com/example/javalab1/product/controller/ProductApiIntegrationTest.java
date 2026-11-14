@@ -16,6 +16,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @org.springframework.context.annotation.Import(com.example.javalab1.support.PostgresTestConfiguration.class)
 @org.springframework.transaction.annotation.Transactional
 @AutoConfigureMockMvc
+@org.springframework.security.test.context.support.WithMockUser(
+        authorities = {"SCOPE_products:read", "SCOPE_products:write"})
 class ProductApiIntegrationTest {
     @Autowired private MockMvc mvc;
     @Autowired private ProductService service;

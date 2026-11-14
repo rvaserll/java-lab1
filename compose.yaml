@@ -14,5 +14,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  jwks:
+    image: wiremock/wiremock:3.13.2
+    ports:
+      - "127.0.0.1:${JWKS_PORT:-8090}:8080"
+    volumes:
+      - ./docker/wiremock/mappings:/home/wiremock/mappings:ro
+      - ./.local-security/jwks.json:/home/wiremock/__files/jwks.json:ro
 volumes:
   postgres_data:

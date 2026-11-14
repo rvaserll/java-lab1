@@ -32,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 @org.springframework.context.annotation.Import(com.example.javalab1.support.PostgresTestConfiguration.class)
 @org.springframework.transaction.annotation.Transactional
+@org.springframework.security.test.context.support.WithMockUser(
+        authorities = {"SCOPE_products:read", "SCOPE_products:write"})
 class ProductControllerTest {
     private static final String API = "/api/products";
     private static final UUID TOYS = UUID.fromString("11111111-1111-1111-1111-111111111111");

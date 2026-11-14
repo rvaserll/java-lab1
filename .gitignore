@@ -44,3 +44,6 @@ build/
 
 # Local database credentials
 .env
+
+# Local JWT signing material (never commit private keys)
+.local-security/
