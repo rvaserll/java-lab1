@@ -11,3 +11,10 @@ spring:
       ddl-auto: validate
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
+
+market:
+  security:
+    api-key: ${MARKET_API_KEY:}
+    issuer: ${JWT_ISSUER:http://localhost:8090}
+    jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/.well-known/jwks.json}
+    audience: ${JWT_AUDIENCE:cosmo-cats-api}

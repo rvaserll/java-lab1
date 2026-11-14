@@ -7,12 +7,20 @@ info:
     Product API for an intergalactic marketplace.
     Products are persisted in PostgreSQL and remain available after application restart.
 
+    Authenticate with either Authorization: Bearer <JWT> or X-API-Key, never both.
+    JWT requires products:read for GET/HEAD and products:write for POST/PUT/DELETE.
+    A valid API key grants both permissions.
+
     Initially available categories:
     - 11111111-1111-1111-1111-111111111111 — Space toys
     - 22222222-2222-2222-2222-222222222222 — Cosmic food
 
 servers:
   - url: http://localhost:8080
+
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
 
 tags:
   - name: Products
@@ -56,6 +64,10 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -96,6 +108,10 @@ paths:
                 $ref: '#/components/schemas/ProductPageResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -124,6 +140,10 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -156,6 +176,10 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -176,10 +200,23 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
   requestBodies:
     ProductBody:
       description: Editable product fields.
@@ -196,6 +233,23 @@ components:
             stock: 10
 
   responses:
+    Unauthorized:
+      description: Missing or invalid authentication, duplicate API keys, or simultaneous authentication methods.
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+          description: Bearer authentication challenge.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Authentication succeeded but the required product permission is missing.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
     BadRequest:
       description: |
         Invalid fields, malformed JSON, an invalid identifier
